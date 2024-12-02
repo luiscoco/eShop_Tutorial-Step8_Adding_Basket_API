@@ -499,14 +499,31 @@ We can also review the generated code
 
 ![image](https://github.com/user-attachments/assets/8dfff05a-4d63-41e8-944e-70d9a3b9fb4f)
 
-## 12. We Modify the Middleware (eShop.AppHost project)
+## 12. We confirm the Basket.API project reference was included in the eShop.AppHost project
+
+![image](https://github.com/user-attachments/assets/baa12a59-1959-4565-ae05-0aed7bd75a2e)
+
+
+## 13. We Add the Nuget packages in eShop.AppHost project
+
+![image](https://github.com/user-attachments/assets/d6a77ab3-95d9-4f66-90fc-08aa0626f6b8)
+
+**Aspire.Hosting.Redis**: this NuGet package provides extension methods and resource definitions for configuring a Redis resource within a .NET Aspire AppHost
+
+This integration enables seamless setup and management of Redis instances in your distributed applications
+
+## 13. We Modify the Middleware (eShop.AppHost project)
+
+We add the **Redis** service reference
+
+```csharp
+var redis = builder.AddRedis("redis");
+```
 
 
 
 
-
-
-## 13. We Add the Basket Services files (WebApp project)
+## 14. We Add the Basket Services files (WebApp project)
 
 
 
