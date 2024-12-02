@@ -7,7 +7,10 @@ var postgres = builder.AddPostgres("postgres")
     .WithImageTag("latest")
     .WithLifetime(ContainerLifetime.Persistent);
 
+var redis = builder.AddRedis("redis");
+
 var catalogDb = postgres.AddDatabase("catalogdb");
+
 var identityDb = postgres.AddDatabase("IdentityDB");
 
 var launchProfileName = ShouldUseHttpForEndpoints() ? "http" : "https";
@@ -18,11 +21,16 @@ var identityApi = builder.AddProject<Projects.Idintity_API>("identity-api", laun
 
 var identityEndpoint = identityApi.GetEndpoint(launchProfileName);
 
+var basketApi = builder.AddProject<Projects.Basket_API>("basket-api")
+    .WithReference(redis)
+    .WithEnvironment("Identity__Url", identityEndpoint);
+
 var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api")
     .WithReference(catalogDb);
 
 var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
     .WithExternalHttpEndpoints()
+    .WithReference(basketApi)
     .WithReference(catalogApi)
     .WithEnvironment("IdentityUrl", identityEndpoint);
 
