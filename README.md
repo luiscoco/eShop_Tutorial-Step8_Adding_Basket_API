@@ -503,7 +503,6 @@ We can also review the generated code
 
 ![image](https://github.com/user-attachments/assets/baa12a59-1959-4565-ae05-0aed7bd75a2e)
 
-
 ## 13. We Add the Nuget packages in eShop.AppHost project
 
 ![image](https://github.com/user-attachments/assets/d6a77ab3-95d9-4f66-90fc-08aa0626f6b8)
@@ -520,8 +519,23 @@ We add the **Redis** service reference
 var redis = builder.AddRedis("redis");
 ```
 
+We also have to add the **Basket.API** service registration in the middleware
 
+```csharp
+var basketApi = builder.AddProject<Projects.Basket_API>("basket-api")
+    .WithReference(redis)
+    .WithEnvironment("Identity__Url", identityEndpoint);
+```
 
+We add also the **Basket.API** reference in the **WebAp**
+
+```csharp
+var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
+    .WithExternalHttpEndpoints()
+    .WithReference(basketApi)
+    .WithReference(catalogApi)
+    .WithEnvironment("IdentityUrl", identityEndpoint);
+```
 
 ## 14. We Add the Basket Services files (WebApp project)
 
