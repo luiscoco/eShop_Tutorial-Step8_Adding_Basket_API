@@ -24,23 +24,19 @@ We right click on the Solution name and select the menu option **Add New Project
 
 We select the **ASP.NET Core gRPC Service** project template and press on the Next button
 
-
+![image](https://github.com/user-attachments/assets/39eee51b-1704-4794-8bc6-d1a4fe88af2a)
 
 We input the project name and location and press on the Next button
 
-
+![image](https://github.com/user-attachments/assets/113b03dd-1d86-45dc-883f-209ef686db8f)
 
 We select the **.NET 9** Framework and press the Create button
 
-
-
-We review the Solution folders structure after adding the new API
-
-
+![image](https://github.com/user-attachments/assets/0f2a79d4-7fe4-43e7-a520-eeafdf7a3909)
 
 ## 4. We Load the Nuget packages and we create the GlobalUsings.cs file (Basket.API project)
 
-
+![image](https://github.com/user-attachments/assets/59ce7bb9-8ea3-411d-a3f7-1e384594062a)
 
 **Aspire.StackExchange.Redis**: This package is typically an extension or a customization of the popular StackExchange.Redis library, which is widely used for working with Redis, a high-performance in-memory data store
 
@@ -70,21 +66,15 @@ Dependencies: It integrates tightly with the ASP.NET Core pipeline and leverages
 
 ## 5. We Delete Protos and Services folders
 
-
-
-After deleting the folders we have this project structure
-
-
-
 ## 6. We Create the Folders structure (Basket.API project)
 
-
+![image](https://github.com/user-attachments/assets/02c6f4aa-aada-4e31-a415-e4114e2d1e1b)
 
 ## 7. We Create the Data Model (Basket.API project)
 
 We have to add two new files for defining the data model:
 
-
+![image](https://github.com/user-attachments/assets/cec328e4-9750-473c-a7ca-8fbaa012ca66)
 
 **BasketItem** represents an item in a shopping basket, including properties to describe the product, its pricing, quantity, and picture URL
 
@@ -157,7 +147,7 @@ public class CustomerBasket
 
 We have to add two files for defining the Repository:
 
-
+![image](https://github.com/user-attachments/assets/85697374-df0e-456c-9fa2-ca9d16561416)
 
 The interface outlines the contract for a repository that **manages** operations related to **customer baskets** (shopping carts)
 
@@ -251,7 +241,7 @@ public partial class BasketSerializationContext : JsonSerializerContext
 
 We create a new Service file **BasketService.cs**
 
-
+![image](https://github.com/user-attachments/assets/7d328efa-8c97-41c9-be1d-df6bc5891d2a)
 
 We review the **BasketService.cs**
 
@@ -373,11 +363,17 @@ public class BasketService(
 
 We also add the proto file **basket.proto**
 
-
+![image](https://github.com/user-attachments/assets/e2fc179b-98b4-475b-8144-2b0d755c7e34)
 
 We have to right click on the **Proto** folder and add a new **basket.proto** file
 
+![image](https://github.com/user-attachments/assets/e9f0fff0-184f-4e3e-b8f0-2492a7bdf715)
 
+![image](https://github.com/user-attachments/assets/6a9cb154-c1ed-45ca-948d-910f00874af6)
+
+We have to configure the Proto file properties
+
+![image](https://github.com/user-attachments/assets/17e6cd5b-de8c-48db-9989-30dbce3f66b9)
 
 We also review the **basket.proto** source code:
 
