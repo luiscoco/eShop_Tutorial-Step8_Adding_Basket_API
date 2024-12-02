@@ -4,7 +4,6 @@ This sample scope of work is focus on adding the **Basket Service** in the **eSh
 
 We can review the architecture picture
 
-![image](https://github.com/user-attachments/assets/ad245c0d-2289-48eb-88db-ebc1208c673a)
 
 ## 1. We Download the Solution from Github repo
 
@@ -14,33 +13,33 @@ https://github.com/luiscoco/eShop_Tutorial-Step7_Provision_AI_in_AppHost
 
 ## 2. We Rename the Solution
 
-![image](https://github.com/user-attachments/assets/523fed06-b2fa-44e9-b3cd-5ff10d67efd3)
+
 
 ## 3. We Add a New Project Basket.API
 
 We right click on the Solution name and select the menu option **Add New Project**
 
-![image](https://github.com/user-attachments/assets/b8a08d79-7d39-46de-94cb-0bada54246ef)
+
 
 We select the **ASP.NET Core gRPC Service** project template and press on the Next button
 
-![image](https://github.com/user-attachments/assets/0f43695b-7984-4d48-a49a-43905f310392)
+
 
 We input the project name and location and press on the Next button
 
-![image](https://github.com/user-attachments/assets/8e438b49-df5c-4431-87c8-472e66171bd4)
+
 
 We select the **.NET 9** Framework and press the Create button
 
-![image](https://github.com/user-attachments/assets/5c25c9a6-123a-49fb-9c67-ada87bb5c88a)
+
 
 We review the Solution folders structure after adding the new API
 
-![image](https://github.com/user-attachments/assets/ce8052ae-8a1e-4ad1-ac9e-d4e7f1e01224)
+
 
 ## 4. We Load the Nuget packages and we create the GlobalUsings.cs file (Basket.API project)
 
-![image](https://github.com/user-attachments/assets/d5d1f833-c693-4461-9807-58166f169d5a)
+
 
 **Aspire.StackExchange.Redis**: This package is typically an extension or a customization of the popular StackExchange.Redis library, which is widely used for working with Redis, a high-performance in-memory data store
 
@@ -70,21 +69,21 @@ Dependencies: It integrates tightly with the ASP.NET Core pipeline and leverages
 
 ## 5. We Delete Protos and Services folders
 
-![image](https://github.com/user-attachments/assets/b5a55bbe-4946-41e1-9a93-7c19d8492124)
+
 
 After deleting the folders we have this project structure
 
-![image](https://github.com/user-attachments/assets/9396bc58-f6a1-488c-801c-69772c90cb47)
+
 
 ## 6. We Create the Folders structure (Basket.API project)
 
-![image](https://github.com/user-attachments/assets/9feb30bb-681f-4422-a526-b24589ee1430)
+
 
 ## 7. We Create the Data Model (Basket.API project)
 
 We have to add two new files for defining the data model:
 
-![image](https://github.com/user-attachments/assets/7ce8e9d4-99cb-409e-b805-e3f97873af4d)
+
 
 **BasketItem** represents an item in a shopping basket, including properties to describe the product, its pricing, quantity, and picture URL
 
@@ -157,7 +156,7 @@ public class CustomerBasket
 
 We have to add two files for defining the Repository:
 
-![image](https://github.com/user-attachments/assets/4f839cd2-cb65-4cc3-8801-2bcf74d94b9b)
+
 
 The interface outlines the contract for a repository that **manages** operations related to **customer baskets** (shopping carts)
 
@@ -182,9 +181,7 @@ This implementation is an efficient and scalable way to manage user-specific dat
 
 **Redis** is chosen for storing baskets in e-commerce applications because it offers unmatched speed, simplicity, and scalability for handling ephemeral, high-traffic data. These qualities align well with the dynamic nature of shopping baskets, ensuring users experience real-time responsiveness and reliability
 
-![image](https://github.com/user-attachments/assets/c1adab5c-6e05-4b7a-97d7-0d811b383b9a)
 
-![image](https://github.com/user-attachments/assets/f37fae43-c03f-4602-a2b1-89ca71abe3eb)
 
 **RedisBasketRepository.cs**
 
@@ -253,7 +250,7 @@ public partial class BasketSerializationContext : JsonSerializerContext
 
 We create a new Service file **BasketService.cs**
 
-![image](https://github.com/user-attachments/assets/5e92dcff-a135-4ea3-b8bd-0e8ef7b45fe3)
+
 
 We review the **BasketService.cs**
 
@@ -375,11 +372,11 @@ public class BasketService(
 
 We also add the proto file **basket.proto**
 
-![image](https://github.com/user-attachments/assets/0671d766-bf46-4893-9a31-59af728074df)
+
 
 We have to right click on the **Proto** folder and add a new **basket.proto** file
 
-![image](https://github.com/user-attachments/assets/2644f48f-a686-464f-84cb-435f2157412a)
+
 
 We also review the **basket.proto** source code:
 
@@ -423,7 +420,7 @@ message DeleteBasketResponse {
 
 We have to add the Extensions files: **Extensions.cs** and **ServerCallContextIdentityExtensions.cs**
 
-![image](https://github.com/user-attachments/assets/2f652b76-4706-40aa-b448-6fe03a55e8ae)
+
 
 We review the  **Extensions.cs** source code:
 
@@ -487,25 +484,25 @@ app.Run();
 
 We right click on the Basket.API project and we select the menu option **Add .NET Aspire Orchestrator Support...**
 
-![image](https://github.com/user-attachments/assets/aeb3b404-1265-4151-91e6-99d48a642c4c)
+
 
 We configure the Proto file
 
-![image](https://github.com/user-attachments/assets/a557de30-5893-46be-be07-38a71731af83)
+
 
 We confirm we also include the **eShop.ServicesDefault** project as a new refernce in the **Basket.API** project
 
-![image](https://github.com/user-attachments/assets/5af1604e-f31b-403f-9d60-d2bd631937c8)
+
 
 We right click on the Basket.API project and Set As StartUp project
 
 We buidl the Basket.API project for generating the Proto files
 
-![image](https://github.com/user-attachments/assets/f7c88523-5fe1-4332-9fa8-d803bd92fba9)
+
 
 We can also review the generated code
 
-![image](https://github.com/user-attachments/assets/84a06cf0-f936-4442-9368-393ac790dc2a)
+
 
 ## 12. We Modify the Middleware (eShop.AppHost project)
 
