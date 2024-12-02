@@ -68,11 +68,19 @@ Includes middleware and tools for defining, hosting, and consuming gRPC services
 
 Dependencies: It integrates tightly with the ASP.NET Core pipeline and leverages the Protobuf serialization format for defining service contracts and data exchange
 
-## 5. We Create the Folders structure (Basket.API project)
+## 5. We Delete Protos and Services folders
+
+![image](https://github.com/user-attachments/assets/b5a55bbe-4946-41e1-9a93-7c19d8492124)
+
+After deleting the folders we have this project structure
+
+![image](https://github.com/user-attachments/assets/9396bc58-f6a1-488c-801c-69772c90cb47)
+
+## 6. We Create the Folders structure (Basket.API project)
 
 ![image](https://github.com/user-attachments/assets/9feb30bb-681f-4422-a526-b24589ee1430)
 
-## 6. We Create the Data Model (Basket.API project)
+## 7. We Create the Data Model (Basket.API project)
 
 We have to add two new files for defining the data model:
 
@@ -145,7 +153,11 @@ public class CustomerBasket
 }
 ```
 
-## 7. We Create Redis Repository (Basket.API project)
+## 8. We Create Redis Repository (Basket.API project)
+
+We have to add two files for defining the Repository:
+
+![image](https://github.com/user-attachments/assets/4f839cd2-cb65-4cc3-8801-2bcf74d94b9b)
 
 The interface outlines the contract for a repository that **manages** operations related to **customer baskets** (shopping carts)
 
@@ -177,6 +189,7 @@ This implementation is an efficient and scalable way to manage user-specific dat
 **RedisBasketRepository.cs**
 
 ```csharp
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using eShop.Basket.API.Model;
 using StackExchange.Redis;
@@ -236,34 +249,272 @@ public partial class BasketSerializationContext : JsonSerializerContext
 }
 ```
 
-## 8. We Create the Service and Proto file (Basket.API project)
+## 9. We Create the Service and Proto file (Basket.API project)
 
-We first delete the **GreeterService.cs** file
+We create a new Service file **BasketService.cs**
 
-![image](https://github.com/user-attachments/assets/e097cb36-f017-438a-a716-ad56c8035204)
+![image](https://github.com/user-attachments/assets/5e92dcff-a135-4ea3-b8bd-0e8ef7b45fe3)
 
-We also delete the **greet.proto** file
+We review the **BasketService.cs**
 
-![image](https://github.com/user-attachments/assets/1bfd2124-a236-4bf4-8782-0c9cf8e5a4ac)
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using eShop.Basket.API.Repositories;
+using eShop.Basket.API.Extensions;
+using eShop.Basket.API.Model;
+using Microsoft.AspNetCore.Authorization;
+using Grpc.Core;
 
-We create a new file ****
+namespace eShop.Basket.API.Grpc;
+
+public class BasketService(
+    IBasketRepository repository,
+    ILogger<BasketService> logger) : Basket.BasketBase
+{
+    [AllowAnonymous]
+    public override async Task<CustomerBasketResponse> GetBasket(GetBasketRequest request, ServerCallContext context)
+    {
+        var userId = context.GetUserIdentity();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return new();
+        }
+
+        if (logger.IsEnabled(LogLevel.Debug))
+        {
+            logger.LogDebug("Begin GetBasketById call from method {Method} for basket id {Id}", context.Method, userId);
+        }
+
+        var data = await repository.GetBasketAsync(userId);
+
+        if (data is not null)
+        {
+            return MapToCustomerBasketResponse(data);
+        }
+
+        return new();
+    }
+
+    public override async Task<CustomerBasketResponse> UpdateBasket(UpdateBasketRequest request, ServerCallContext context)
+    {
+        var userId = context.GetUserIdentity();
+        if (string.IsNullOrEmpty(userId))
+        {
+            ThrowNotAuthenticated();
+        }
+
+        if (logger.IsEnabled(LogLevel.Debug))
+        {
+            logger.LogDebug("Begin UpdateBasket call from method {Method} for basket id {Id}", context.Method, userId);
+        }
+
+        var customerBasket = MapToCustomerBasket(userId, request);
+        var response = await repository.UpdateBasketAsync(customerBasket);
+        if (response is null)
+        {
+            ThrowBasketDoesNotExist(userId);
+        }
+
+        return MapToCustomerBasketResponse(response);
+    }
+
+    public override async Task<DeleteBasketResponse> DeleteBasket(DeleteBasketRequest request, ServerCallContext context)
+    {
+        var userId = context.GetUserIdentity();
+        if (string.IsNullOrEmpty(userId))
+        {
+            ThrowNotAuthenticated();
+        }
+
+        await repository.DeleteBasketAsync(userId);
+        return new();
+    }
+
+    [DoesNotReturn]
+    private static void ThrowNotAuthenticated() => throw new RpcException(new Status(StatusCode.Unauthenticated, "The caller is not authenticated."));
+
+    [DoesNotReturn]
+    private static void ThrowBasketDoesNotExist(string userId) => throw new RpcException(new Status(StatusCode.NotFound, $"Basket with buyer id {userId} does not exist"));
+
+    private static CustomerBasketResponse MapToCustomerBasketResponse(CustomerBasket customerBasket)
+    {
+        var response = new CustomerBasketResponse();
+
+        foreach (var item in customerBasket.Items)
+        {
+            response.Items.Add(new BasketItem()
+            {
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+            });
+        }
+
+        return response;
+    }
+
+    private static CustomerBasket MapToCustomerBasket(string userId, UpdateBasketRequest customerBasketRequest)
+    {
+        var response = new CustomerBasket
+        {
+            BuyerId = userId
+        };
+
+        foreach (var item in customerBasketRequest.Items)
+        {
+            response.Items.Add(new()
+            {
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+            });
+        }
+
+        return response;
+    }
+}
+```
+
+We also add the proto file **basket.proto**
+
+![image](https://github.com/user-attachments/assets/0671d766-bf46-4893-9a31-59af728074df)
+
+We have to right click on the **Proto** folder and add a new **basket.proto** file
+
+![image](https://github.com/user-attachments/assets/2644f48f-a686-464f-84cb-435f2157412a)
+
+We also review the **basket.proto** source code:
+
+```csharp
+syntax = "proto3";
+
+option csharp_namespace = "eShop.Basket.API.Grpc";
+
+package BasketApi;
+
+service Basket {
+    rpc GetBasket(GetBasketRequest) returns (CustomerBasketResponse) {}
+    rpc UpdateBasket(UpdateBasketRequest) returns (CustomerBasketResponse) {}
+    rpc DeleteBasket(DeleteBasketRequest) returns (DeleteBasketResponse) {}
+}
+
+message GetBasketRequest {
+}
+
+message CustomerBasketResponse {
+    repeated BasketItem items = 1;
+}
+
+message BasketItem {
+    int32 product_id = 2;
+    int32 quantity = 6;
+}
+
+message UpdateBasketRequest {
+    repeated BasketItem items = 2;
+}
+
+message DeleteBasketRequest {
+}
+
+message DeleteBasketResponse {
+}
+```
+
+## 10. We Define the Middleware and the Extensions files (Basket.API project)
+
+We have to add the Extensions files: **Extensions.cs** and **ServerCallContextIdentityExtensions.cs**
+
+![image](https://github.com/user-attachments/assets/2f652b76-4706-40aa-b448-6fe03a55e8ae)
+
+We review the  **Extensions.cs** source code:
+
+```csharp
+using System.Text.Json.Serialization;
+using eShop.Basket.API.Repositories;
+using eShop.ServiceDefaults;
+
+namespace eShop.Basket.API.Extensions;
+
+public static class Extensions
+{
+    public static void AddApplicationServices(this IHostApplicationBuilder builder)
+    {
+        builder.AddDefaultAuthentication();
+
+        builder.AddRedisClient("redis");
+
+        builder.Services.AddSingleton<IBasketRepository, RedisBasketRepository>();
+    }
+}
+```
+
+We also review the **ServerCallContextIdentityExtensions.cs** code:
+
+```csharp
+#nullable enable
+using Grpc.Core;
+namespace eShop.Basket.API.Extensions;
+
+internal static class ServerCallContextIdentityExtensions
+{
+    public static string? GetUserIdentity(this ServerCallContext context) => context.GetHttpContext().User.FindFirst("sub")?.Value;
+    public static string? GetUserName(this ServerCallContext context) => context.GetHttpContext().User.FindFirst(x => x.Type == ClaimTypes.Name)?.Value;
+}
+```
+
+We also define the middleware
+
+**Program.cs**
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();
+
+builder.AddApplicationServices();
+
+builder.Services.AddGrpc();
+
+var app = builder.Build();
+
+app.MapDefaultEndpoints();
+
+app.MapGrpcService<BasketService>();
+
+app.Run();
+```
+
+## 11. We add orchestrator support in the Basket.API project
+
+We right click on the Basket.API project and we select the menu option **Add .NET Aspire Orchestrator Support...**
+
+![image](https://github.com/user-attachments/assets/aeb3b404-1265-4151-91e6-99d48a642c4c)
+
+We configure the Proto file
+
+![image](https://github.com/user-attachments/assets/a557de30-5893-46be-be07-38a71731af83)
+
+We confirm we also include the **eShop.ServicesDefault** project as a new refernce in the **Basket.API** project
+
+![image](https://github.com/user-attachments/assets/5af1604e-f31b-403f-9d60-d2bd631937c8)
+
+We right click on the Basket.API project and Set As StartUp project
+
+We buidl the Basket.API project for generating the Proto files
+
+![image](https://github.com/user-attachments/assets/f7c88523-5fe1-4332-9fa8-d803bd92fba9)
+
+We can also review the generated code
+
+![image](https://github.com/user-attachments/assets/84a06cf0-f936-4442-9368-393ac790dc2a)
+
+## 12. We Modify the Middleware (eShop.AppHost project)
 
 
-## 9. We Define the Middleware and the Extensions files (Basket.API project)
 
 
 
 
-
-
-## 10. We Modify the Middleware (eShop.AppHost project)
-
-
-
-
-
-
-## 11. We Add the Basket Services files (WebApp project)
+## 13. We Add the Basket Services files (WebApp project)
 
 
 
@@ -271,7 +522,7 @@ We create a new file ****
 
 
 
-## 12. We Add the Cart Icon (WebApp project)
+## 14. We Add the Cart Icon (WebApp project)
 
 
 
@@ -279,7 +530,7 @@ We create a new file ****
 
 
 
-## 13. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
+## 15. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
 
 
 
@@ -287,7 +538,7 @@ We create a new file ****
 
 
 
-## 14. We Add the CartPage razor component (WebApp project)
+## 16. We Add the CartPage razor component (WebApp project)
 
 
 
@@ -295,7 +546,7 @@ We create a new file ****
 
 
 
-## 15. We Modify the Extensions Middleware (WebApp project)
+## 17. We Modify the Extensions Middleware (WebApp project)
 
 
 
@@ -303,7 +554,7 @@ We create a new file ****
 
 
 
-## 16. We Run the Application and verify the results
+## 18. We Run the Application and verify the results
 
 
 
