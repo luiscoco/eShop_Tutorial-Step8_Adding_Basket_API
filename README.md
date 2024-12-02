@@ -4,6 +4,7 @@ This sample scope of work is focus on adding the **Basket Service** in the **eSh
 
 We can review the architecture picture
 
+![image](https://github.com/user-attachments/assets/bb063b3b-d46a-4d5b-ac67-9010d48c4589)
 
 ## 1. We Download the Solution from Github repo
 
@@ -13,13 +14,13 @@ https://github.com/luiscoco/eShop_Tutorial-Step7_Provision_AI_in_AppHost
 
 ## 2. We Rename the Solution
 
-
+![image](https://github.com/user-attachments/assets/bac06caa-d08a-4c1f-98d2-33efb163c830)
 
 ## 3. We Add a New Project Basket.API
 
 We right click on the Solution name and select the menu option **Add New Project**
 
-
+![image](https://github.com/user-attachments/assets/e05cea1f-c0ed-4deb-a243-3db983cd9119)
 
 We select the **ASP.NET Core gRPC Service** project template and press on the Next button
 
