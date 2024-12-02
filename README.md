@@ -417,7 +417,7 @@ message DeleteBasketResponse {
 
 We have to add the Extensions files: **Extensions.cs** and **ServerCallContextIdentityExtensions.cs**
 
-
+![image](https://github.com/user-attachments/assets/ad7d1cb1-bd45-4f7e-a2e1-3b5de6c7e4b5)
 
 We review the  **Extensions.cs** source code:
 
@@ -457,6 +457,8 @@ internal static class ServerCallContextIdentityExtensions
 
 We also define the middleware
 
+![image](https://github.com/user-attachments/assets/731c9275-62ff-4286-849e-58b01f94cbf0)
+
 **Program.cs**
 
 ```csharp
@@ -481,25 +483,21 @@ app.Run();
 
 We right click on the Basket.API project and we select the menu option **Add .NET Aspire Orchestrator Support...**
 
-
-
-We configure the Proto file
-
-
+![image](https://github.com/user-attachments/assets/22e5d264-e097-4ef6-bab0-cfcb2c01c79d)
 
 We confirm we also include the **eShop.ServicesDefault** project as a new refernce in the **Basket.API** project
 
-
+![image](https://github.com/user-attachments/assets/fdc0053b-f9d0-4004-9689-12f696f85e67)
 
 We right click on the Basket.API project and Set As StartUp project
 
-We buidl the Basket.API project for generating the Proto files
+We **build** the **Basket.API** project for generating the Proto files
 
-
+![image](https://github.com/user-attachments/assets/674b5326-f271-41c8-a70e-55d6eb919618)
 
 We can also review the generated code
 
-
+![image](https://github.com/user-attachments/assets/8dfff05a-4d63-41e8-944e-70d9a3b9fb4f)
 
 ## 12. We Modify the Middleware (eShop.AppHost project)
 
