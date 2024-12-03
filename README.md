@@ -913,17 +913,121 @@ public class BasketService(GrpcBasketClient basketClient)
 public record BasketQuantity(int ProductId, int Quantity);
 ```
 
-
-
 ## 20. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
 
+We include the **CartMenu** in the **HeaderBar.razor**
+
+![image](https://github.com/user-attachments/assets/db5958e4-042b-4f2b-bafe-ac8e4e0ceeb8)
+
+**HeaderBar.razor**
+
+```razor
+@using Microsoft.AspNetCore.Components.Endpoints
+@using Microsoft.AspNetCore.Components.Sections;
+
+<div class="eshop-header @(IsCatalog? "home" : "")">
+    <div class="eshop-header-hero">
+        @{
+            var headerImage = IsCatalog ? "images/header-home.webp" : "images/header.webp";
+        }
+        <img role="presentation" src="@headerImage" />
+    </div>
+    <div class="eshop-header-container">
+        <nav class="eshop-header-navbar">
+            <a class="logo logo-header" href="">
+                <img alt="AdventureWorks" src="images/logo-header.svg" class="logo logo-header" />
+            </a>
+            
+            <UserMenu />
+            <CartMenu />
+        </nav>
+        <div class="eshop-header-intro">
+            <h1><SectionOutlet SectionName="page-header-title" /></h1>
+            <p><SectionOutlet SectionName="page-header-subtitle" /></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    // We can use Endpoint Metadata to determine the page currently being visited
+    private Type? PageComponentType => HttpContext?.GetEndpoint()?.Metadata.OfType<ComponentTypeMetadata>().FirstOrDefault()?.Type;
+    private bool IsCatalog => PageComponentType == typeof(Pages.Catalog.Catalog);
+}
+```
+
+## 21. We define the CartMenu.razor file
+
+![image](https://github.com/user-attachments/assets/067fb8cc-d730-4b32-b88d-0ce41ad0de1f)
+
+**CartMenu.razor**
+
+```razor
+@using System.Net
+@attribute [StreamRendering]
+@inject BasketState Basket
+@inject LogOutService LogOutService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<a aria-label="cart" href="cart">
+    <img role="presentation" src="icons/cart.svg" />
+    @if (basketItems?.Count > 0)
+    {
+        <span class="cart-badge">@TotalQuantity</span>
+    }
+</a>
+
+@code {
+    IDisposable? basketStateSubscription;
+    private IReadOnlyCollection<BasketItem>? basketItems;
+
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    private int? TotalQuantity => basketItems?.Sum(i => i.Quantity);
+
+    protected override async Task OnInitializedAsync()
+    {
+        // The basket contents may change during the lifetime of this component (e.g., when an item is
+        // added during the current request). If this EventCallback is invoked, it will cause this
+        // component to re-render with the updated data.
+        basketStateSubscription = Basket.NotifyOnChange(
+            EventCallback.Factory.Create(this, UpdateBasketItemsAsync));
+
+        try
+        {
+            await UpdateBasketItemsAsync();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            await LogOutService.LogOutAsync(HttpContext!);
+        }
+    }
+
+    public void Dispose()
+    {
+        basketStateSubscription?.Dispose();
+    }
+
+    private async Task UpdateBasketItemsAsync()
+    {
+        basketItems = await Basket.GetBasketItemsAsync();
+    }
+}
+```
+
+## 22. We Add the CartPage razor component (WebApp project)
 
 
 
 
 
 
-## 17. We Add the CartPage razor component (WebApp project)
+
+## 23. We Modify the Extensions Middleware (WebApp project)
 
 
 
@@ -931,15 +1035,7 @@ public record BasketQuantity(int ProductId, int Quantity);
 
 
 
-## 18. We Modify the Extensions Middleware (WebApp project)
-
-
-
-
-
-
-
-## 19. We Run the Application and verify the results
+## 23. We Run the Application and verify the results
 
 
 
