@@ -1021,148 +1021,138 @@ We include the **CartMenu** in the **HeaderBar.razor**
 
 ## 22. We Add the CartPage razor component (WebApp project)
 
-This code represents the implementation of a Razor Component for a shopping cart in an e-commerce application using Blazor
+This Razor Component represents a **product details page** for an e-commerce application built with Blazor
 
-It provides a user interface to display, update, and manage items in the user's shopping cart
+The page displays **detailed information about a product**, allows users to add it to their shopping cart, and adjusts its behavior based on the user's authentication status
 
-This Razor Component implements a user-friendly shopping cart with:
+This **product details page** is a feature-rich component that:
 
-**State Management**: Uses BasketState to fetch, update, and display basket items
+**Displays Product Information**: Dynamically loads and shows product details like name, price, description, and brand
 
-**Dynamic UI Updates**: Displays loading, empty, and populated states based on basketItems
+**Handles User Interaction**: Allows authenticated users to add products to the cart
 
-**Real-Time Updates**: Implements quantity changes with immediate UI feedback
+Redirects unauthenticated users to the login page
 
-**Security**: Includes anti-forgery tokens for secure form submissions
+**Manages State**: Tracks the product's presence in the cart and updates it dynamically
 
-**Responsiveness**: Updates totals dynamically and provides navigation links for seamless user interaction
+**Error Handling**: Gracefully handles missing products by showing a "Not Found" message
 
-This design ensures a smooth and secure shopping cart experience in a Blazor-based e-commerce app
+This design ensures a user-friendly experience for browsing and interacting with products in an e-commerce application
 
-**CartPage.razor**
+**ItemPage.razor**
 
 ```razor
-@page "/cart"
-@using Microsoft.AspNetCore.Authorization
+@page "/item/{itemId:int}"
+@using System.Net
+@inject CatalogService CatalogService
+@inject BasketState BasketState
 @inject NavigationManager Nav
-@inject BasketState Basket
 @inject IProductImageUrlProvider ProductImages
-@attribute [StreamRendering]
-@attribute [Authorize]
 
-<PageTitle>Shopping Bag | AdventureWorks</PageTitle>
-<SectionContent SectionName="page-header-title">Shopping bag</SectionContent>
+@if (item is not null)
+{
+    <PageTitle>@item.Name | AdventureWorks</PageTitle>
+    <SectionContent SectionName="page-header-title">@item.Name</SectionContent>
+    <SectionContent SectionName="page-header-subtitle">@item.CatalogBrand?.Brand</SectionContent>
 
-<div class='cart'>
-    @if (basketItems is null)
-    {
-        <p>Loading...</p>
-    }
-    else if (basketItems.Count == 0)
-    {
-        <p>
-            Your shopping bag is empty. <a href="">Continue shopping.</a>
-        </p>
-    }
-    else
-    {
-        <div class='cart-items'>
-            <div class='cart-item-header'>
-                <div class='catalog-item-info'>Products</div>
-                <div class='catalog-item-quantity'>Quantity</div>
-                <div class='catalog-item-total'>Total</div>
-            </div>
-            @foreach (var item in basketItems)
+    <div class="item-details">
+        <img alt="@item.Name" src="@ProductImages.GetProductImageUrl(item)" />
+        <div class="description">
+            <p>@item.Description</p>
+            <p>
+                Brand: <strong>@item.CatalogBrand?.Brand</strong>
+            </p>
+            <form class="add-to-cart" method="post" @formname="add-to-cart" @onsubmit="@AddToCartAsync" data-enhance="@isLoggedIn">
+                <AntiforgeryToken />
+                <span class="price">$@item.Price.ToString("0.00")</span>
+
+                @if (isLoggedIn)
+                {
+                    <button type="submit" title="Add to basket">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path id="Vector" d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path id="Vector_2" d="M3 6H21" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path id="Vector_3" d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Add to shopping bag
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" title="Log in to purchase">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Log in to purchase
+                    </button>
+                }
+            </form>
+
+            @if (numInCart > 0)
             {
-                var quantity = CurrentOrPendingQuantity(item.ProductId, item.Quantity);
-                <div class="cart-item" @key="@item.Id">
-                    <div class="catalog-item-info">
-                        <img alt="@item.ProductName" src="@ProductImages.GetProductImageUrl(item.ProductId)" />
-                        <div class="catalog-item-content">
-                            <p class="name">@item.ProductName</p>
-                            <p class="price">$@item.UnitPrice.ToString("0.00")</p>
-                        </div>
-                    </div>
-                    <div class="catalog-item-quantity">
-                        <form method="post" data-enhance>
-                            <input type="hidden" name="_handler" value="update-cart" />
-                            <AntiforgeryToken />
-                            <input aria-label="product quantity" type="number" name="UpdateQuantityValue" value="@quantity" min="0" />
-                            <button type="submit" 
-                                    class="button button-secondary"
-                                    name="UpdateQuantityId" 
-                                    value="@item.ProductId">
-                                Update
-                            </button>
-                        </form>
-                    </div>
-                    <div class="catalog-item-total">
-                        $@((item.UnitPrice * quantity).ToString("0.00"))
-                    </div>
-                </div>
+                <p><strong>@numInCart</strong> in <a href="cart">shopping bag</a></p>
             }
         </div>
-       
-
-        <div class="cart-summary">
-            <div class="cart-summary-container">
-                <div class="cart-summary-header">
-                    <img role="presentation" src="icons/cart.svg" />
-                    Your shopping bag
-                    <span class="filter-badge">@TotalQuantity</span>
-                </div>
-                <div class="cart-summary-total">
-                    <div>Total</div>
-                    <div>$@TotalPrice?.ToString("0.00")</div>
-                </div>
-                <a href="checkout" class="button button-primary">Check out</a>
-                <a href="" class="cart-summary-link">
-                    <img role="presentation" src="icons/arrow-left.svg" />
-                    <p>Continue shopping</p>
-                </a>
-            </div>
-        </div>
-    }
-</div>
-
-<form @formname="update-cart" @onsubmit="@UpdateQuantityAsync"></form>
+    </div>
+}
+else if (notFound)
+{
+    <SectionContent SectionName="page-header-title">Not found</SectionContent>
+    <div class="item-details">
+        <p>Sorry, we couldn't find any such product.</p>
+    </div>
+}
 
 @code {
-    private IReadOnlyCollection<BasketItem>? basketItems;
+    private CatalogItem? item;
+    private int numInCart;
+    private bool isLoggedIn;
+    private bool notFound;
 
-    [SupplyParameterFromForm]
-    public int? UpdateQuantityId { get; set; }
+    [Parameter]
+    public int ItemId { get; set; }
 
-    [SupplyParameterFromForm]
-    public int? UpdateQuantityValue { get; set; }
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        basketItems = await Basket.GetBasketItemsAsync();
+        try
+        {
+            isLoggedIn = HttpContext?.User.Identity?.IsAuthenticated == true;
+            item = await CatalogService.GetCatalogItem(ItemId);
+            await UpdateNumInCartAsync();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            HttpContext!.Response.StatusCode = 404;
+            notFound = true;
+        }
     }
 
-    private decimal? TotalPrice => basketItems?.Sum(i => i.Quantity * i.UnitPrice);
-    private decimal? TotalQuantity => basketItems?.Sum(i => i.Quantity);
-
-    // While an update post is in process, we want to show the pending quantity, not the one
-    // that is committed to the cart (otherwise the UI briefly shows the old data)
-    private int CurrentOrPendingQuantity(int productId, int cartQuantity)
-        => UpdateQuantityId.GetValueOrDefault(-1) == productId
-        ? UpdateQuantityValue!.Value
-        : cartQuantity;
-
-    private async Task UpdateQuantityAsync()
+    private async Task AddToCartAsync()
     {
-        var id = UpdateQuantityId!.Value;
-        var quantity = UpdateQuantityValue!.Value;
-        await Basket.SetQuantityAsync(id, quantity);
-        basketItems = await Basket.GetBasketItemsAsync();
+        if (!isLoggedIn)
+        {
+            Nav.NavigateTo(Pages.User.LogIn.Url(Nav));
+            return;
+        }
+
+        if (item is not null)
+        {
+            await BasketState.AddAsync(item);
+            await UpdateNumInCartAsync();
+        }
+    }
+
+    private async Task UpdateNumInCartAsync()
+    {
+        var items = await BasketState.GetBasketItemsAsync();
+        numInCart = items.FirstOrDefault(row => row.ProductId == ItemId)?.Quantity ?? 0;
     }
 }
 ```
-
-
-
 
 ## 23. We Modify the Extensions Middleware (WebApp project)
 
