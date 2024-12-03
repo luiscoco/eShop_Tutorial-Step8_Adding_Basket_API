@@ -503,7 +503,7 @@ We can also review the generated code
 
 ![image](https://github.com/user-attachments/assets/baa12a59-1959-4565-ae05-0aed7bd75a2e)
 
-## 13. We Add the Nuget packages in eShop.AppHost project
+## 13. We Add the Nuget packages (eShop.AppHost project)
 
 ![image](https://github.com/user-attachments/assets/d6a77ab3-95d9-4f66-90fc-08aa0626f6b8)
 
@@ -511,7 +511,7 @@ We can also review the generated code
 
 This integration enables seamless setup and management of Redis instances in your distributed applications
 
-## 13. We Modify the Middleware (eShop.AppHost project)
+## 14. We Modify the Middleware (eShop.AppHost project)
 
 We add the **Redis** service reference
 
@@ -537,7 +537,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
     .WithEnvironment("IdentityUrl", identityEndpoint);
 ```
 
-## 14. We Add the Basket Services files (WebApp project)
+## 15. We Add the Basket Services files (WebApp project)
 
 
 
@@ -545,7 +545,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 
 
-## 14. We Add the Cart Icon (WebApp project)
+## 16. We Add the Cart Icon (WebApp project)
 
 
 
@@ -553,7 +553,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 
 
-## 15. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
+## 17. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
 
 
 
@@ -561,7 +561,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 
 
-## 16. We Add the CartPage razor component (WebApp project)
+## 18. We Add the CartPage razor component (WebApp project)
 
 
 
@@ -569,7 +569,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 
 
-## 17. We Modify the Extensions Middleware (WebApp project)
+## 19. We Modify the Extensions Middleware (WebApp project)
 
 
 
@@ -577,34 +577,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 
 
-## 18. We Run the Application and verify the results
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## 20. We Run the Application and verify the results
 
 
 
