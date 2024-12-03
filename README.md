@@ -511,7 +511,21 @@ We can also review the generated code
 
 This integration enables seamless setup and management of Redis instances in your distributed applications
 
-## 14. We Modify the Middleware (eShop.AppHost project)
+## 14. We Modify the appsettings.json (Basket.API project)
+
+In authentication or token-based systems (like OAuth or JWT), the **audience** often refers to the entity (service or application) that the token is intended for
+
+The value "**basket**" could signify a specific service, such as an **e-commerce basket service** or API, indicating that this configuration is relevant for it
+
+We modify the **appsettings.json** for adding this code:
+
+```json
+  "Identity": {
+    "Audience": "basket"
+  }
+```
+
+## 15. We Modify the Middleware (eShop.AppHost project)
 
 We add the **Redis** service reference
 
@@ -537,7 +551,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
     .WithEnvironment("IdentityUrl", identityEndpoint);
 ```
 
-## 15. We Add the Cart Icon (WebApp project)
+## 16. We Add the Cart Icon (WebApp project)
 
 
 
@@ -545,7 +559,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 
 
-## 16. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
+## 17. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
 
 
 
