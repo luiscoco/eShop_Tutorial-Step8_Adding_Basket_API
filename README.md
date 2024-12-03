@@ -1156,11 +1156,32 @@ else if (notFound)
 
 ## 23. We Modify the Extensions Middleware (WebApp project)
 
+We register the **Basket services**
 
+**Extensions.cs**
 
+```csharp
+public static void AddApplicationServices(this IHostApplicationBuilder builder)
+{
+  builder.AddAuthenticationServices();
 
+  builder.Services.AddHttpForwarderWithServiceDiscovery();
 
+  // Application services
+  builder.Services.AddScoped<BasketState>();
+  builder.Services.AddScoped<LogOutService>();
+  builder.Services.AddSingleton<BasketService>();
 
+  builder.Services.AddSingleton<IProductImageUrlProvider, ProductImageUrlProvider>();
+
+  builder.Services.AddGrpcClient<Basket.BasketClient>(o => o.Address = new("http://localhost:5134"))
+      .AddAuthToken();
+
+  builder.Services.AddHttpClient<CatalogService>(o => o.BaseAddress = new("http://localhost:5301"))
+      .AddApiVersion(1.0)
+      .AddAuthToken();
+}
+```
 
 ## 24. We Run the Application and verify the results
 
