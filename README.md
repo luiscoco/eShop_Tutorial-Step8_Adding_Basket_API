@@ -658,6 +658,16 @@ The **BasketState** class provides a comprehensive solution for managing the sho
 
 It centralizes basket-related logic, integrates with other services, and maintains a reactive design to handle UI updates and state changes
 
+The **BasketState** class:
+
+**Manages Basket State**: Retrieves, updates, and deletes basket items. Provides caching to reduce redundant operations
+
+**Handles Authentication**: Ensures basket operations are tied to the authenticated user
+
+**Supports Change Notifications**: Notifies subscribers (e.g., UI components) of state changes
+
+**Enables Checkout**: Manages basket checkout and prepares data for order creation
+
 **BasketState.cs**
 
 ```csharp
