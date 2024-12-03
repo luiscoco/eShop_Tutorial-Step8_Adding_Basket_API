@@ -553,11 +553,13 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 ## 16. We Add the Cart Icon (WebApp project)
 
+We have to add the cart svg image in the wwwroot folder
 
+![image](https://github.com/user-attachments/assets/604eb28e-1b8b-460f-963a-4abff8f0e9f0)
 
+The cart image will be used in the CartMenu.razor and CartPage.razor components
 
-
-
+![image](https://github.com/user-attachments/assets/af1528df-fda1-4beb-b707-372bb1d133ff)
 
 ## 17. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
 
