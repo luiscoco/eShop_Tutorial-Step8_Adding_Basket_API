@@ -1172,7 +1172,7 @@ This design ensures a smooth and secure shopping cart experience in a Blazor-bas
 
 
 
-## 23. We Run the Application and verify the results
+## 24. We Run the Application and verify the results
 
 
 
