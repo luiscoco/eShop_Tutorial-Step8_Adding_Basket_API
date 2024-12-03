@@ -845,6 +845,74 @@ public record CreateOrderRequest(
     List<BasketItem> Items);
 ```
 
+**BasketService.cs**
+
+The **BasketService** class is a service layer that interacts with a **gRPC-based basket API** to manage the shopping basket in an e-commerce application
+
+It communicates with the basket API using the gRPC client (GrpcBasketClient) and provides methods for basket operations
+
+**Integration with gRPC**: The BasketService uses a gRPC client (GrpcBasketClient) to communicate with the basket API
+
+The gRPC methods (GetBasketAsync, DeleteBasketAsync, and UpdateBasketAsync) enable fetching, deleting, and updating basket items
+
+**Abstraction**: The service abstracts the underlying gRPC communication, exposing simpler, strongly-typed methods for use within the application
+
+Example: Instead of working directly with CustomerBasketResponse, the method returns a collection of BasketQuantity
+
+**Mapping Data**: Converts gRPC response objects (like CustomerBasketResponse) into application-friendly data structures (BasketQuantity) for easier use
+
+```csharp
+using eShop.Basket.API.Grpc;
+using GrpcBasketItem = eShop.Basket.API.Grpc.BasketItem;
+using GrpcBasketClient = eShop.Basket.API.Grpc.Basket.BasketClient;
+
+namespace eShop.WebApp.Services;
+
+public class BasketService(GrpcBasketClient basketClient)
+{
+    public async Task<IReadOnlyCollection<BasketQuantity>> GetBasketAsync()
+    {
+        var result = await basketClient.GetBasketAsync(new ());
+        return MapToBasket(result);
+    }
+
+    public async Task DeleteBasketAsync()
+    {
+        await basketClient.DeleteBasketAsync(new DeleteBasketRequest());
+    }
+
+    public async Task UpdateBasketAsync(IReadOnlyCollection<BasketQuantity> basket)
+    {
+        var updatePayload = new UpdateBasketRequest();
+
+        foreach (var item in basket)
+        {
+            var updateItem = new GrpcBasketItem
+            {
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+            };
+            updatePayload.Items.Add(updateItem);
+        }
+
+        await basketClient.UpdateBasketAsync(updatePayload);
+    }
+
+    private static List<BasketQuantity> MapToBasket(CustomerBasketResponse response)
+    {
+        var result = new List<BasketQuantity>();
+        foreach (var item in response.Items)
+        {
+            result.Add(new BasketQuantity(item.ProductId, item.Quantity));
+        }
+
+        return result;
+    }
+}
+
+public record BasketQuantity(int ProductId, int Quantity);
+```
+
 
 
 ## 20. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
