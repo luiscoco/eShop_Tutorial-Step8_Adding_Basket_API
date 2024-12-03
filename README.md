@@ -1193,7 +1193,14 @@ We login in the application and we navigate to the **Cart Page**
 
 ![image](https://github.com/user-attachments/assets/39d79fb3-c6e6-49cd-8c52-81591d62b1e9)
 
+We can navigate to an Item Page and then we can press in the **Add to Cart** button
 
+![image](https://github.com/user-attachments/assets/86fcd3e9-e30e-48a3-ad3a-4fc6a3162898)
 
+We confirm the new item was added in the Cart
+
+![image](https://github.com/user-attachments/assets/0121bda6-a808-4be1-bbdf-2ff82dd8aea1)
+
+![image](https://github.com/user-attachments/assets/337733b8-fbb9-48eb-8016-e5b484f6580a)
 
 
