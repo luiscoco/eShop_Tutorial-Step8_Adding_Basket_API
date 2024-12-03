@@ -1185,6 +1185,13 @@ public static void AddApplicationServices(this IHostApplicationBuilder builder)
 
 ## 24. We Run the Application and verify the results
 
+After running the application we can see the new **Cart icon**
+
+![image](https://github.com/user-attachments/assets/37ccad8c-b690-4221-b561-dce22823a344)
+
+We login in the application and we navigate to the **Cart Page**
+
+![image](https://github.com/user-attachments/assets/39d79fb3-c6e6-49cd-8c52-81591d62b1e9)
 
 
 
