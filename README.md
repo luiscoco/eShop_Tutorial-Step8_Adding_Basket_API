@@ -537,7 +537,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
     .WithEnvironment("IdentityUrl", identityEndpoint);
 ```
 
-## 15. We Add the Basket Services files (WebApp project)
+## 15. We Add the Cart Icon (WebApp project)
 
 
 
@@ -545,7 +545,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 
 
-## 16. We Add the Cart Icon (WebApp project)
+## 16. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
 
 
 
@@ -553,7 +553,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 
 
-## 17. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
+## 17. We Add the CartPage razor component (WebApp project)
 
 
 
@@ -561,7 +561,7 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 
 
-## 18. We Add the CartPage razor component (WebApp project)
+## 18. We Modify the Extensions Middleware (WebApp project)
 
 
 
@@ -569,15 +569,10 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
 
 
 
-## 19. We Modify the Extensions Middleware (WebApp project)
+## 19. We Run the Application and verify the results
 
 
 
-
-
-
-
-## 20. We Run the Application and verify the results
 
 
 
