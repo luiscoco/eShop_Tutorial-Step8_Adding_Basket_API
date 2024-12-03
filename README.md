@@ -561,7 +561,90 @@ The cart image will be used in the CartMenu.razor and CartPage.razor components
 
 ![image](https://github.com/user-attachments/assets/af1528df-fda1-4beb-b707-372bb1d133ff)
 
-## 17. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
+## 17. We Add Nuget packages (WebApp project)
+
+![image](https://github.com/user-attachments/assets/962036e1-9ea9-4828-99b2-2bd90ea1c374)
+
+**Grpc.AspNetCore.Server.ClientFactory**: is used at runtime for managing gRPC clients in an ASP.NET Core 
+
+**Grpc.Tools**: is used during development to generate C# code from .proto files, which defines the gRPC service and message contracts
+
+**Microsoft.AspNetCore.Authorization**: package is a core component of ASP.NET Core that provides support for authorization in web applications
+
+**Authorization** is the process of determining whether a user or system has the necessary permissions to perform specific actions or access specific resources
+
+## 18. We Modify the WebApp csproj file
+
+**WebApp.csproj**
+
+```csharp
+<ItemGroup>
+  <Protobuf Include="..\Basket.API\Proto\basket.proto" GrpcServices="Client" />
+</ItemGroup>
+```
+
+## 19. We Add Basket Services in the WebApp project
+
+![image](https://github.com/user-attachments/assets/dedf6829-e743-4cf0-aa7f-632c3d3812e5)
+
+This C# code defines a class called **BasketCheckoutInfo** that serves as a data transfer object (**DTO**) for handling basket **checkout information** in an e-commerce application
+
+It likely captures the necessary details for processing a purchase and submitting a checkout request
+
+**BasketCheckoutInfo.cs**
+
+```csharp
+using System.ComponentModel.DataAnnotations;
+
+namespace eShop.WebApp.Services;
+
+public class BasketCheckoutInfo
+{
+    [Required]
+    public string? Street { get; set; }
+    [Required]
+    public string? City { get; set; }
+    [Required]
+    public string? State { get; set; }
+    [Required]
+    public string? Country { get; set; }
+    [Required]
+    public string? ZipCode { get; set; }
+    public string? CardNumber { get; set; }
+    public string? CardHolderName { get; set; }
+    public string? CardSecurityNumber { get; set; }
+    public DateTime? CardExpiration { get; set; }
+    public int CardTypeId { get; set; }
+    public string? Buyer { get; set; }
+    public Guid RequestId { get; set; }
+}
+```
+
+**BasketItem.cs**
+
+This C# code defines a class called BasketItem that represents an **item in a shopping basket** in an e-commerce application
+
+```csharp
+namespace eShop.WebApp.Services;
+
+public class BasketItem
+{
+    public required string Id { get; set; }
+    public int ProductId { get; set; }
+    public required string ProductName { get; set; }
+    public decimal UnitPrice { get; set; }
+    public decimal OldUnitPrice { get; set; }
+    public int Quantity { get; set; }
+}
+```
+
+****
+
+****
+
+
+
+## 20. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
 
 
 
