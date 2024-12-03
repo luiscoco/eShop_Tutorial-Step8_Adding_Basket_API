@@ -1021,8 +1021,145 @@ We include the **CartMenu** in the **HeaderBar.razor**
 
 ## 22. We Add the CartPage razor component (WebApp project)
 
+This code represents the implementation of a Razor Component for a shopping cart in an e-commerce application using Blazor
 
+It provides a user interface to display, update, and manage items in the user's shopping cart
 
+This Razor Component implements a user-friendly shopping cart with:
+
+**State Management**: Uses BasketState to fetch, update, and display basket items
+
+**Dynamic UI Updates**: Displays loading, empty, and populated states based on basketItems
+
+**Real-Time Updates**: Implements quantity changes with immediate UI feedback
+
+**Security**: Includes anti-forgery tokens for secure form submissions
+
+**Responsiveness**: Updates totals dynamically and provides navigation links for seamless user interaction
+
+This design ensures a smooth and secure shopping cart experience in a Blazor-based e-commerce app
+
+**CartPage.razor**
+
+```razor
+@page "/cart"
+@using Microsoft.AspNetCore.Authorization
+@inject NavigationManager Nav
+@inject BasketState Basket
+@inject IProductImageUrlProvider ProductImages
+@attribute [StreamRendering]
+@attribute [Authorize]
+
+<PageTitle>Shopping Bag | AdventureWorks</PageTitle>
+<SectionContent SectionName="page-header-title">Shopping bag</SectionContent>
+
+<div class='cart'>
+    @if (basketItems is null)
+    {
+        <p>Loading...</p>
+    }
+    else if (basketItems.Count == 0)
+    {
+        <p>
+            Your shopping bag is empty. <a href="">Continue shopping.</a>
+        </p>
+    }
+    else
+    {
+        <div class='cart-items'>
+            <div class='cart-item-header'>
+                <div class='catalog-item-info'>Products</div>
+                <div class='catalog-item-quantity'>Quantity</div>
+                <div class='catalog-item-total'>Total</div>
+            </div>
+            @foreach (var item in basketItems)
+            {
+                var quantity = CurrentOrPendingQuantity(item.ProductId, item.Quantity);
+                <div class="cart-item" @key="@item.Id">
+                    <div class="catalog-item-info">
+                        <img alt="@item.ProductName" src="@ProductImages.GetProductImageUrl(item.ProductId)" />
+                        <div class="catalog-item-content">
+                            <p class="name">@item.ProductName</p>
+                            <p class="price">$@item.UnitPrice.ToString("0.00")</p>
+                        </div>
+                    </div>
+                    <div class="catalog-item-quantity">
+                        <form method="post" data-enhance>
+                            <input type="hidden" name="_handler" value="update-cart" />
+                            <AntiforgeryToken />
+                            <input aria-label="product quantity" type="number" name="UpdateQuantityValue" value="@quantity" min="0" />
+                            <button type="submit" 
+                                    class="button button-secondary"
+                                    name="UpdateQuantityId" 
+                                    value="@item.ProductId">
+                                Update
+                            </button>
+                        </form>
+                    </div>
+                    <div class="catalog-item-total">
+                        $@((item.UnitPrice * quantity).ToString("0.00"))
+                    </div>
+                </div>
+            }
+        </div>
+       
+
+        <div class="cart-summary">
+            <div class="cart-summary-container">
+                <div class="cart-summary-header">
+                    <img role="presentation" src="icons/cart.svg" />
+                    Your shopping bag
+                    <span class="filter-badge">@TotalQuantity</span>
+                </div>
+                <div class="cart-summary-total">
+                    <div>Total</div>
+                    <div>$@TotalPrice?.ToString("0.00")</div>
+                </div>
+                <a href="checkout" class="button button-primary">Check out</a>
+                <a href="" class="cart-summary-link">
+                    <img role="presentation" src="icons/arrow-left.svg" />
+                    <p>Continue shopping</p>
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<form @formname="update-cart" @onsubmit="@UpdateQuantityAsync"></form>
+
+@code {
+    private IReadOnlyCollection<BasketItem>? basketItems;
+
+    [SupplyParameterFromForm]
+    public int? UpdateQuantityId { get; set; }
+
+    [SupplyParameterFromForm]
+    public int? UpdateQuantityValue { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        basketItems = await Basket.GetBasketItemsAsync();
+    }
+
+    private decimal? TotalPrice => basketItems?.Sum(i => i.Quantity * i.UnitPrice);
+    private decimal? TotalQuantity => basketItems?.Sum(i => i.Quantity);
+
+    // While an update post is in process, we want to show the pending quantity, not the one
+    // that is committed to the cart (otherwise the UI briefly shows the old data)
+    private int CurrentOrPendingQuantity(int productId, int cartQuantity)
+        => UpdateQuantityId.GetValueOrDefault(-1) == productId
+        ? UpdateQuantityValue!.Value
+        : cartQuantity;
+
+    private async Task UpdateQuantityAsync()
+    {
+        var id = UpdateQuantityId!.Value;
+        var quantity = UpdateQuantityValue!.Value;
+        await Basket.SetQuantityAsync(id, quantity);
+        basketItems = await Basket.GetBasketItemsAsync();
+    }
+}
+```
 
 
 
