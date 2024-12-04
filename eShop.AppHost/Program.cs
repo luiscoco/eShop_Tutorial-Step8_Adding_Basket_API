@@ -55,8 +55,6 @@ webApp.WithEnvironment("CallBackUrl", webApp.GetEndpoint(launchProfileName));
 // Identity has a reference to all of the apps for callback urls, this is a cyclic reference
 identityApi.WithEnvironment("WebAppClient", webApp.GetEndpoint(launchProfileName));
 
-builder.AddProject<Projects.Basket_API>("basket-api");
-
 builder.Build().Run();
 static bool ShouldUseHttpForEndpoints()
 {

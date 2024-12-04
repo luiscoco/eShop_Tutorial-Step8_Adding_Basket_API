@@ -1,4 +1,5 @@
 ﻿using System;
+using eShop.Basket.API.Grpc;
 using eShop.WebApp;
 using eShop.WebApp.Services;
 using eShop.WebAppComponents.Services;
@@ -18,9 +19,15 @@ public static class Extensions
         builder.Services.AddHttpForwarderWithServiceDiscovery();
 
         // Application services
+        builder.Services.AddScoped<BasketState>();
         builder.Services.AddScoped<LogOutService>();
+        builder.Services.AddSingleton<BasketService>();
 
         builder.Services.AddSingleton<IProductImageUrlProvider, ProductImageUrlProvider>();
+
+        builder.Services.AddGrpcClient<Basket.BasketClient>(o => o.Address = new("http://localhost:5134"))
+            .AddAuthToken();
+
         builder.Services.AddHttpClient<CatalogService>(o => o.BaseAddress = new("http://localhost:5301"))
             .AddApiVersion(1.0)
             .AddAuthToken();

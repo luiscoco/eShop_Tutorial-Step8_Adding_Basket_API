@@ -1,7 +1,7 @@
 ﻿@page "/item/{itemId:int}"
 @using System.Net
 @inject CatalogService CatalogService
-@* @inject BasketState BasketState *@
+@inject BasketState BasketState
 @inject NavigationManager Nav
 @inject IProductImageUrlProvider ProductImages
 
@@ -97,14 +97,14 @@ else if (notFound)
 
         if (item is not null)
         {
-            // await BasketState.AddAsync(item);
+            await BasketState.AddAsync(item);
             await UpdateNumInCartAsync();
         }
     }
 
     private async Task UpdateNumInCartAsync()
     {
-        // var items = await BasketState.GetBasketItemsAsync();
-        // numInCart = items.FirstOrDefault(row => row.ProductId == ItemId)?.Quantity ?? 0;
+        var items = await BasketState.GetBasketItemsAsync();
+        numInCart = items.FirstOrDefault(row => row.ProductId == ItemId)?.Quantity ?? 0;
     }
 }
