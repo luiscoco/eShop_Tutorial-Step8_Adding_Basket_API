@@ -503,7 +503,7 @@ We can also review the generated code
 
 ![image](https://github.com/user-attachments/assets/baa12a59-1959-4565-ae05-0aed7bd75a2e)
 
-## 13. We Add the Nuget packages in eShop.AppHost project
+## 13. We Add the Nuget packages (eShop.AppHost project)
 
 ![image](https://github.com/user-attachments/assets/d6a77ab3-95d9-4f66-90fc-08aa0626f6b8)
 
@@ -511,7 +511,21 @@ We can also review the generated code
 
 This integration enables seamless setup and management of Redis instances in your distributed applications
 
-## 13. We Modify the Middleware (eShop.AppHost project)
+## 14. We Modify the appsettings.json (Basket.API project)
+
+In authentication or token-based systems (like OAuth or JWT), the **audience** often refers to the entity (service or application) that the token is intended for
+
+The value "**basket**" could signify a specific service, such as an **e-commerce basket service** or API, indicating that this configuration is relevant for it
+
+We modify the **appsettings.json** for adding this code:
+
+```json
+  "Identity": {
+    "Audience": "basket"
+  }
+```
+
+## 15. We Modify the Middleware (eShop.AppHost project)
 
 We add the **Redis** service reference
 
@@ -537,74 +551,656 @@ var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
     .WithEnvironment("IdentityUrl", identityEndpoint);
 ```
 
-## 14. We Add the Basket Services files (WebApp project)
+## 16. We Add the Cart Icon (WebApp project)
 
+We have to add the cart svg image in the wwwroot folder
 
+![image](https://github.com/user-attachments/assets/604eb28e-1b8b-460f-963a-4abff8f0e9f0)
 
+The cart image will be used in the CartMenu.razor and CartPage.razor components
 
+![image](https://github.com/user-attachments/assets/af1528df-fda1-4beb-b707-372bb1d133ff)
 
+## 17. We Add Nuget packages (WebApp project)
 
+![image](https://github.com/user-attachments/assets/962036e1-9ea9-4828-99b2-2bd90ea1c374)
 
-## 14. We Add the Cart Icon (WebApp project)
+**Grpc.AspNetCore.Server.ClientFactory**: is used at runtime for managing gRPC clients in an ASP.NET Core 
 
+**Grpc.Tools**: is used during development to generate C# code from .proto files, which defines the gRPC service and message contracts
 
+**Microsoft.AspNetCore.Authorization**: package is a core component of ASP.NET Core that provides support for authorization in web applications
 
+**Authorization** is the process of determining whether a user or system has the necessary permissions to perform specific actions or access specific resources
 
+## 18. We Modify the WebApp csproj file
 
+**WebApp.csproj**
 
+```csharp
+<ItemGroup>
+  <Protobuf Include="..\Basket.API\Proto\basket.proto" GrpcServices="Client" />
+</ItemGroup>
+```
 
-## 15. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
+## 19. We Add Basket Services in the WebApp project
 
+![image](https://github.com/user-attachments/assets/dedf6829-e743-4cf0-aa7f-632c3d3812e5)
 
+This C# code defines a class called **BasketCheckoutInfo** that serves as a data transfer object (**DTO**) for handling basket **checkout information** in an e-commerce application
 
+It likely captures the necessary details for processing a purchase and submitting a checkout request
 
+**BasketCheckoutInfo.cs**
 
+```csharp
+using System.ComponentModel.DataAnnotations;
 
+namespace eShop.WebApp.Services;
 
-## 16. We Add the CartPage razor component (WebApp project)
+public class BasketCheckoutInfo
+{
+    [Required]
+    public string? Street { get; set; }
+    [Required]
+    public string? City { get; set; }
+    [Required]
+    public string? State { get; set; }
+    [Required]
+    public string? Country { get; set; }
+    [Required]
+    public string? ZipCode { get; set; }
+    public string? CardNumber { get; set; }
+    public string? CardHolderName { get; set; }
+    public string? CardSecurityNumber { get; set; }
+    public DateTime? CardExpiration { get; set; }
+    public int CardTypeId { get; set; }
+    public string? Buyer { get; set; }
+    public Guid RequestId { get; set; }
+}
+```
 
+**BasketItem.cs**
 
+This C# code defines a class called BasketItem that represents an **item in a shopping basket** in an e-commerce application
 
+```csharp
+namespace eShop.WebApp.Services;
 
+public class BasketItem
+{
+    public required string Id { get; set; }
+    public int ProductId { get; set; }
+    public required string ProductName { get; set; }
+    public decimal UnitPrice { get; set; }
+    public decimal OldUnitPrice { get; set; }
+    public int Quantity { get; set; }
+}
+```
 
+**IBasketState.cs**
 
+```csharp
+using eShop.WebAppComponents.Catalog;
 
-## 17. We Modify the Extensions Middleware (WebApp project)
+namespace eShop.WebApp.Services
+{
+    public interface IBasketState
+    {
+        public Task<IReadOnlyCollection<BasketItem>> GetBasketItemsAsync();
+        public Task AddAsync(CatalogItem item);
+    }
+}
 
+```
 
+The **BasketState** class provides a comprehensive solution for managing the shopping basket in an e-commerce app
 
+It centralizes basket-related logic, integrates with other services, and maintains a reactive design to handle UI updates and state changes
 
+The **BasketState** class:
 
+**Manages Basket State**: Retrieves, updates, and deletes basket items. Provides caching to reduce redundant operations
 
+**Handles Authentication**: Ensures basket operations are tied to the authenticated user
 
-## 18. We Run the Application and verify the results
+**Supports Change Notifications**: Notifies subscribers (e.g., UI components) of state changes
 
+**Enables Checkout**: Manages basket checkout and prepares data for order creation
 
+**BasketState.cs**
 
+```csharp
+using System.Security.Claims;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using eShop.WebAppComponents.Catalog;
+using eShop.WebAppComponents.Services;
 
+namespace eShop.WebApp.Services;
 
+public class BasketState(
+    BasketService basketService,
+    CatalogService catalogService,
+    //OrderingService orderingService,
+    AuthenticationStateProvider authenticationStateProvider) : IBasketState
+{
+    private Task<IReadOnlyCollection<BasketItem>>? _cachedBasket;
+    private HashSet<BasketStateChangedSubscription> _changeSubscriptions = new();
 
+    public Task DeleteBasketAsync()
+        => basketService.DeleteBasketAsync();
 
+    public async Task<IReadOnlyCollection<BasketItem>> GetBasketItemsAsync()
+        => (await GetUserAsync()).Identity?.IsAuthenticated == true
+        ? await FetchBasketItemsAsync()
+        : [];
 
+    public IDisposable NotifyOnChange(EventCallback callback)
+    {
+        var subscription = new BasketStateChangedSubscription(this, callback);
+        _changeSubscriptions.Add(subscription);
+        return subscription;
+    }
 
+    public async Task AddAsync(CatalogItem item)
+    {
+        var items = (await FetchBasketItemsAsync()).Select(i => new BasketQuantity(i.ProductId, i.Quantity)).ToList();
+        bool found = false;
+        for (var i = 0; i < items.Count; i++)
+        {
+            var existing = items[i];
+            if (existing.ProductId == item.Id)
+            {
+                items[i] = existing with { Quantity = existing.Quantity + 1 };
+                found = true;
+                break;
+            }
+        }
 
+        if (!found)
+        {
+            items.Add(new BasketQuantity(item.Id, 1));
+        }
 
+        _cachedBasket = null;
+        await basketService.UpdateBasketAsync(items);
+        await NotifyChangeSubscribersAsync();
+    }
 
+    public async Task SetQuantityAsync(int productId, int quantity)
+    {
+        var existingItems = (await FetchBasketItemsAsync()).ToList();
+        if (existingItems.FirstOrDefault(row => row.ProductId == productId) is { } row)
+        {
+            if (quantity > 0)
+            {
+                row.Quantity = quantity;
+            }
+            else
+            {
+                existingItems.Remove(row);
+            }
 
+            _cachedBasket = null;
+            await basketService.UpdateBasketAsync(existingItems.Select(i => new BasketQuantity(i.ProductId, i.Quantity)).ToList());
+            await NotifyChangeSubscribersAsync();
+        }
+    }
 
+    public async Task CheckoutAsync(BasketCheckoutInfo checkoutInfo)
+    {
+        if (checkoutInfo.RequestId == default)
+        {
+            checkoutInfo.RequestId = Guid.NewGuid();
+        }
 
+        //var buyerId = await authenticationStateProvider.GetBuyerIdAsync() ?? throw new InvalidOperationException("User does not have a buyer ID");
+        //var userName = await authenticationStateProvider.GetUserNameAsync() ?? throw new InvalidOperationException("User does not have a user name");
 
+        // Get details for the items in the basket
+        var orderItems = await FetchBasketItemsAsync();
 
+        // Call into Ordering.API to create the order using those details
+        //var request = new CreateOrderRequest(
+        //    UserId: buyerId,
+        //    UserName: userName,
+        //    City: checkoutInfo.City!,
+        //    Street: checkoutInfo.Street!,
+        //    State: checkoutInfo.State!,
+        //    Country: checkoutInfo.Country!,
+        //    ZipCode: checkoutInfo.ZipCode!,
+        //    CardNumber: "1111222233334444",
+        //    CardHolderName: "TESTUSER",
+        //    CardExpiration: DateTime.UtcNow.AddYears(1),
+        //    CardSecurityNumber: "111",
+        //    CardTypeId: checkoutInfo.CardTypeId,
+        //    Buyer: buyerId,
+        //    Items: [.. orderItems]);
+        //await orderingService.CreateOrder(request, checkoutInfo.RequestId);
+        await DeleteBasketAsync();
+    }
 
+    private Task NotifyChangeSubscribersAsync()
+        => Task.WhenAll(_changeSubscriptions.Select(s => s.NotifyAsync()));
 
+    private async Task<ClaimsPrincipal> GetUserAsync()
+        => (await authenticationStateProvider.GetAuthenticationStateAsync()).User;
 
+    private Task<IReadOnlyCollection<BasketItem>> FetchBasketItemsAsync()
+    {
+        return _cachedBasket ??= FetchCoreAsync();
 
+        async Task<IReadOnlyCollection<BasketItem>> FetchCoreAsync()
+        {
+            var quantities = await basketService.GetBasketAsync();
+            if (quantities.Count == 0)
+            {
+                return [];
+            }
 
+            // Get details for the items in the basket
+            var basketItems = new List<BasketItem>();
+            var productIds = quantities.Select(row => row.ProductId);
+            var catalogItems = (await catalogService.GetCatalogItems(productIds)).ToDictionary(k => k.Id, v => v);
+            foreach (var item in quantities)
+            {
+                var catalogItem = catalogItems[item.ProductId];
+                var orderItem = new BasketItem
+                {
+                    Id = Guid.NewGuid().ToString(), // TODO: this value is meaningless, use ProductId instead.
+                    ProductId = catalogItem.Id,
+                    ProductName = catalogItem.Name,
+                    UnitPrice = catalogItem.Price,
+                    Quantity = item.Quantity,
+                };
+                basketItems.Add(orderItem);
+            }
 
+            return basketItems;
+        }
+    }
 
+    private class BasketStateChangedSubscription(BasketState Owner, EventCallback Callback) : IDisposable
+    {
+        public Task NotifyAsync() => Callback.InvokeAsync();
+        public void Dispose() => Owner._changeSubscriptions.Remove(this);
+    }
+}
 
+public record CreateOrderRequest(
+    string UserId,
+    string UserName,
+    string City,
+    string Street,
+    string State,
+    string Country,
+    string ZipCode,
+    string CardNumber,
+    string CardHolderName,
+    DateTime CardExpiration,
+    string CardSecurityNumber,
+    int CardTypeId,
+    string Buyer,
+    List<BasketItem> Items);
+```
 
+**BasketService.cs**
 
+The **BasketService** class is a service layer that interacts with a **gRPC-based basket API** to manage the shopping basket in an e-commerce application
 
+It communicates with the basket API using the gRPC client (GrpcBasketClient) and provides methods for basket operations
+
+**Integration with gRPC**: The BasketService uses a gRPC client (GrpcBasketClient) to communicate with the basket API
+
+The gRPC methods (GetBasketAsync, DeleteBasketAsync, and UpdateBasketAsync) enable fetching, deleting, and updating basket items
+
+**Abstraction**: The service abstracts the underlying gRPC communication, exposing simpler, strongly-typed methods for use within the application
+
+Example: Instead of working directly with CustomerBasketResponse, the method returns a collection of BasketQuantity
+
+**Mapping Data**: Converts gRPC response objects (like CustomerBasketResponse) into application-friendly data structures (BasketQuantity) for easier use
+
+```csharp
+using eShop.Basket.API.Grpc;
+using GrpcBasketItem = eShop.Basket.API.Grpc.BasketItem;
+using GrpcBasketClient = eShop.Basket.API.Grpc.Basket.BasketClient;
+
+namespace eShop.WebApp.Services;
+
+public class BasketService(GrpcBasketClient basketClient)
+{
+    public async Task<IReadOnlyCollection<BasketQuantity>> GetBasketAsync()
+    {
+        var result = await basketClient.GetBasketAsync(new ());
+        return MapToBasket(result);
+    }
+
+    public async Task DeleteBasketAsync()
+    {
+        await basketClient.DeleteBasketAsync(new DeleteBasketRequest());
+    }
+
+    public async Task UpdateBasketAsync(IReadOnlyCollection<BasketQuantity> basket)
+    {
+        var updatePayload = new UpdateBasketRequest();
+
+        foreach (var item in basket)
+        {
+            var updateItem = new GrpcBasketItem
+            {
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+            };
+            updatePayload.Items.Add(updateItem);
+        }
+
+        await basketClient.UpdateBasketAsync(updatePayload);
+    }
+
+    private static List<BasketQuantity> MapToBasket(CustomerBasketResponse response)
+    {
+        var result = new List<BasketQuantity>();
+        foreach (var item in response.Items)
+        {
+            result.Add(new BasketQuantity(item.ProductId, item.Quantity));
+        }
+
+        return result;
+    }
+}
+
+public record BasketQuantity(int ProductId, int Quantity);
+```
+
+## 20. We Add the CartMenu razor component in the HeaderBar razor component (WebApp project)
+
+We include the **CartMenu** in the **HeaderBar.razor**
+
+![image](https://github.com/user-attachments/assets/db5958e4-042b-4f2b-bafe-ac8e4e0ceeb8)
+
+**HeaderBar.razor**
+
+```razor
+@using Microsoft.AspNetCore.Components.Endpoints
+@using Microsoft.AspNetCore.Components.Sections;
+
+<div class="eshop-header @(IsCatalog? "home" : "")">
+    <div class="eshop-header-hero">
+        @{
+            var headerImage = IsCatalog ? "images/header-home.webp" : "images/header.webp";
+        }
+        <img role="presentation" src="@headerImage" />
+    </div>
+    <div class="eshop-header-container">
+        <nav class="eshop-header-navbar">
+            <a class="logo logo-header" href="">
+                <img alt="AdventureWorks" src="images/logo-header.svg" class="logo logo-header" />
+            </a>
+            
+            <UserMenu />
+            <CartMenu />
+        </nav>
+        <div class="eshop-header-intro">
+            <h1><SectionOutlet SectionName="page-header-title" /></h1>
+            <p><SectionOutlet SectionName="page-header-subtitle" /></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    // We can use Endpoint Metadata to determine the page currently being visited
+    private Type? PageComponentType => HttpContext?.GetEndpoint()?.Metadata.OfType<ComponentTypeMetadata>().FirstOrDefault()?.Type;
+    private bool IsCatalog => PageComponentType == typeof(Pages.Catalog.Catalog);
+}
+```
+
+## 21. We define the CartMenu.razor file
+
+![image](https://github.com/user-attachments/assets/067fb8cc-d730-4b32-b88d-0ce41ad0de1f)
+
+**CartMenu.razor**
+
+```razor
+@using System.Net
+@attribute [StreamRendering]
+@inject BasketState Basket
+@inject LogOutService LogOutService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<a aria-label="cart" href="cart">
+    <img role="presentation" src="icons/cart.svg" />
+    @if (basketItems?.Count > 0)
+    {
+        <span class="cart-badge">@TotalQuantity</span>
+    }
+</a>
+
+@code {
+    IDisposable? basketStateSubscription;
+    private IReadOnlyCollection<BasketItem>? basketItems;
+
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    private int? TotalQuantity => basketItems?.Sum(i => i.Quantity);
+
+    protected override async Task OnInitializedAsync()
+    {
+        // The basket contents may change during the lifetime of this component (e.g., when an item is
+        // added during the current request). If this EventCallback is invoked, it will cause this
+        // component to re-render with the updated data.
+        basketStateSubscription = Basket.NotifyOnChange(
+            EventCallback.Factory.Create(this, UpdateBasketItemsAsync));
+
+        try
+        {
+            await UpdateBasketItemsAsync();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            await LogOutService.LogOutAsync(HttpContext!);
+        }
+    }
+
+    public void Dispose()
+    {
+        basketStateSubscription?.Dispose();
+    }
+
+    private async Task UpdateBasketItemsAsync()
+    {
+        basketItems = await Basket.GetBasketItemsAsync();
+    }
+}
+```
+
+## 22. We Add the CartPage razor component (WebApp project)
+
+This Razor Component represents a **product details page** for an e-commerce application built with Blazor
+
+The page displays **detailed information about a product**, allows users to add it to their shopping cart, and adjusts its behavior based on the user's authentication status
+
+This **product details page** is a feature-rich component that:
+
+**Displays Product Information**: Dynamically loads and shows product details like name, price, description, and brand
+
+**Handles User Interaction**: Allows authenticated users to add products to the cart
+
+Redirects unauthenticated users to the login page
+
+**Manages State**: Tracks the product's presence in the cart and updates it dynamically
+
+**Error Handling**: Gracefully handles missing products by showing a "Not Found" message
+
+This design ensures a user-friendly experience for browsing and interacting with products in an e-commerce application
+
+**ItemPage.razor**
+
+```razor
+@page "/item/{itemId:int}"
+@using System.Net
+@inject CatalogService CatalogService
+@inject BasketState BasketState
+@inject NavigationManager Nav
+@inject IProductImageUrlProvider ProductImages
+
+@if (item is not null)
+{
+    <PageTitle>@item.Name | AdventureWorks</PageTitle>
+    <SectionContent SectionName="page-header-title">@item.Name</SectionContent>
+    <SectionContent SectionName="page-header-subtitle">@item.CatalogBrand?.Brand</SectionContent>
+
+    <div class="item-details">
+        <img alt="@item.Name" src="@ProductImages.GetProductImageUrl(item)" />
+        <div class="description">
+            <p>@item.Description</p>
+            <p>
+                Brand: <strong>@item.CatalogBrand?.Brand</strong>
+            </p>
+            <form class="add-to-cart" method="post" @formname="add-to-cart" @onsubmit="@AddToCartAsync" data-enhance="@isLoggedIn">
+                <AntiforgeryToken />
+                <span class="price">$@item.Price.ToString("0.00")</span>
+
+                @if (isLoggedIn)
+                {
+                    <button type="submit" title="Add to basket">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path id="Vector" d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path id="Vector_2" d="M3 6H21" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path id="Vector_3" d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Add to shopping bag
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" title="Log in to purchase">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Log in to purchase
+                    </button>
+                }
+            </form>
+
+            @if (numInCart > 0)
+            {
+                <p><strong>@numInCart</strong> in <a href="cart">shopping bag</a></p>
+            }
+        </div>
+    </div>
+}
+else if (notFound)
+{
+    <SectionContent SectionName="page-header-title">Not found</SectionContent>
+    <div class="item-details">
+        <p>Sorry, we couldn't find any such product.</p>
+    </div>
+}
+
+@code {
+    private CatalogItem? item;
+    private int numInCart;
+    private bool isLoggedIn;
+    private bool notFound;
+
+    [Parameter]
+    public int ItemId { get; set; }
+
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoggedIn = HttpContext?.User.Identity?.IsAuthenticated == true;
+            item = await CatalogService.GetCatalogItem(ItemId);
+            await UpdateNumInCartAsync();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            HttpContext!.Response.StatusCode = 404;
+            notFound = true;
+        }
+    }
+
+    private async Task AddToCartAsync()
+    {
+        if (!isLoggedIn)
+        {
+            Nav.NavigateTo(Pages.User.LogIn.Url(Nav));
+            return;
+        }
+
+        if (item is not null)
+        {
+            await BasketState.AddAsync(item);
+            await UpdateNumInCartAsync();
+        }
+    }
+
+    private async Task UpdateNumInCartAsync()
+    {
+        var items = await BasketState.GetBasketItemsAsync();
+        numInCart = items.FirstOrDefault(row => row.ProductId == ItemId)?.Quantity ?? 0;
+    }
+}
+```
+
+## 23. We Modify the Extensions Middleware (WebApp project)
+
+We register the **Basket services**
+
+**Extensions.cs**
+
+```csharp
+public static void AddApplicationServices(this IHostApplicationBuilder builder)
+{
+  builder.AddAuthenticationServices();
+
+  builder.Services.AddHttpForwarderWithServiceDiscovery();
+
+  // Application services
+  builder.Services.AddScoped<BasketState>();
+  builder.Services.AddScoped<LogOutService>();
+  builder.Services.AddSingleton<BasketService>();
+
+  builder.Services.AddSingleton<IProductImageUrlProvider, ProductImageUrlProvider>();
+
+  builder.Services.AddGrpcClient<Basket.BasketClient>(o => o.Address = new("http://localhost:5134"))
+      .AddAuthToken();
+
+  builder.Services.AddHttpClient<CatalogService>(o => o.BaseAddress = new("http://localhost:5301"))
+      .AddApiVersion(1.0)
+      .AddAuthToken();
+}
+```
+
+## 24. We Run the Application and verify the results
+
+After running the application we can see the new **Cart icon**
+
+![image](https://github.com/user-attachments/assets/37ccad8c-b690-4221-b561-dce22823a344)
+
+We login in the application and we navigate to the **Cart Page**
+
+![image](https://github.com/user-attachments/assets/39d79fb3-c6e6-49cd-8c52-81591d62b1e9)
+
+We can navigate to an Item Page and then we can press in the **Add to Cart** button
+
+![image](https://github.com/user-attachments/assets/86fcd3e9-e30e-48a3-ad3a-4fc6a3162898)
+
+We confirm the new item was added in the Cart
+
+![image](https://github.com/user-attachments/assets/0121bda6-a808-4be1-bbdf-2ff82dd8aea1)
+
+![image](https://github.com/user-attachments/assets/337733b8-fbb9-48eb-8016-e5b484f6580a)
 
 
