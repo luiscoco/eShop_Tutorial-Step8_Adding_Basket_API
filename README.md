@@ -1185,6 +1185,16 @@ public static void AddApplicationServices(this IHostApplicationBuilder builder)
 
 ## 24. We Run the Application and verify the results
 
+First of all please confirm the Nuget Packages versions are equal, in this case 9.0.0
+
+![image](https://github.com/user-attachments/assets/1866ebb2-b7af-47e8-9a73-11cb11fbdd46)
+
+Then we run the application and we navigate to the Dashboard URL
+
+https://localhost:17090/
+
+![image](https://github.com/user-attachments/assets/215d265b-6045-4fd7-ba5d-3ad31308aa3e)
+
 After running the application we can see the new **Cart icon**
 
 ![image](https://github.com/user-attachments/assets/37ccad8c-b690-4221-b561-dce22823a344)
