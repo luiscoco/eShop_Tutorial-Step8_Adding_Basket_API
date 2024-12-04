@@ -1183,7 +1183,13 @@ public static void AddApplicationServices(this IHostApplicationBuilder builder)
 }
 ```
 
-## 24. We Run the Application and verify the results
+## 24. We Add the Grpc Client Instrumentation (eShop.ServiceDefaults project)
+
+We add the Nuget package and then we add the code
+
+![image](https://github.com/user-attachments/assets/1469b7e5-82b2-49bd-96a0-e3b22c7d34e2)
+
+## 25. We Run the Application and verify the results
 
 First of all please confirm the Nuget Packages versions are equal, in this case 9.0.0
 
